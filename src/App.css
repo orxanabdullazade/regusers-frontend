@@ -1,1 +1,16 @@
 @import '~antd/dist/antd.css';
+
+#components-layout-demo-responsive .logo {
+    height: 32px !important;;
+    margin: 16px !important;;
+    background: rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .site-layout-sub-header-background {
+    background: #fff !important;
+  }
+  
+  
+  .site-layout-background {
+    background: #fff;
+  }
