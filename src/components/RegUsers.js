@@ -7,10 +7,10 @@ const RegUsers = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [totalElements, setTotalElements] = useState([]);
+  const [totalPages, setTotalPages] = useState([]);
 
   useEffect(() => {
-    fetchRecords(1);
+    fetchRecords(0);
   }, []);
 
   const columns = [
@@ -35,12 +35,12 @@ const RegUsers = () => {
   const fetchRecords = (page) => {
     setLoading(true);
     axios
-      .get(`http://localhost:8080/eregusers/?page=${page}&size=1`)
+      .get(`http://localhost:8080/eregusers/?page=${page}&size=10`)
       .then((res) => {
         console.log(res.data.totalElements);
         setLoading(false);
         setDataSource(res.data.content);
-        setTotalElements(res.data.totalElements);
+        setTotalPages(res.data.totalPages);
       })
       .catch((error) => {
         setLoading(false);
@@ -57,8 +57,8 @@ const RegUsers = () => {
         columns={columns}
         dataSource={dataSource}
         pagination={{
-          pageSize: 1,
-          total:totalElements,
+          pageSize: 10,
+          total:totalPages,
           onChange: (page) => {
             fetchRecords(page);
           },
