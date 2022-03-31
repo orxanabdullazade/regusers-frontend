@@ -5,69 +5,65 @@ import { Table, Tag, Space } from "antd";
 
 const RegUsers = () => {
   const [error, setError] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [regUserList, setRegUserList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [totalElements, setTotalElements] = useState([]);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/eregusers/")
-      .then((response) => {
-        console.log(response);
-        setIsLoaded(true);
-        setRegUserList(response.data.content);
-      })
-      .catch((error) => {
-        setIsLoaded(true);
-        setError(error);
-      });
+    fetchRecords(1);
   }, []);
-
-  const dataSource = !isLoaded
-    ? "wait"
-    : regUserList.map((row) => ({
-        loginName: row.loginName,
-        status: row.status,
-        mobileStatus: row.mobileStatus,
-        edit: () => <a>Delete</a>,
-      }));
-
 
   const columns = [
     {
       title: "Email",
       dataIndex: "loginName",
-      key: "loginName",
     },
     {
       title: "Email təsdiq",
       dataIndex: "status",
-      key: "status",
     },
     {
       title: "Telefon təsdiq",
       dataIndex: "mobileStatus",
-      key: "mobileStatus",
     },
     {
       title: "#",
       dataIndex: "",
-      key: "",
     },
   ];
 
+  const fetchRecords = (page) => {
+    setLoading(true);
+    axios
+      .get(`http://localhost:8080/eregusers/?page=${page}&size=1`)
+      .then((res) => {
+        console.log(res.data.totalElements);
+        setLoading(false);
+        setDataSource(res.data.content);
+        setTotalElements(res.data.totalElements);
+      })
+      .catch((error) => {
+        setLoading(false);
+        setError(error);
+      });
+  };
+
   if (error) {
     return <div>Error !!!</div>;
-  } else if (!isLoaded) {
-    return <div>Loading...</div>;
   } else {
     return (
-      <Table columns={columns} dataSource={dataSource} />
-      //   <ul>
-      //     {regUserList.map((regUser) => {
-
-      //       return (<li>{regUser.loginName}</li>);
-      //     })}
-      //   </ul>
+      <Table
+        loading={loading}
+        columns={columns}
+        dataSource={dataSource}
+        pagination={{
+          pageSize: 1,
+          total:totalElements,
+          onChange: (page) => {
+            fetchRecords(page);
+          },
+        }}
+      />
     );
   }
 };
