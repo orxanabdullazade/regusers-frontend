@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import reactDom from "react-dom";
 import axios from "axios";
-import { Table, Tag, Space } from "antd";
+import { Table, Tag, Space, Button } from "antd";
 
 const RegUsers = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [totalPages, setTotalPages] = useState([]);
+  const [totalElements, setTotalElements] = useState(1);
+  // const [page, setPage] = useState(1);
+  // const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchRecords(0);
@@ -21,26 +23,37 @@ const RegUsers = () => {
     {
       title: "Email təsdiq",
       dataIndex: "status",
+      render: status => (
+        <Tag color={status==9?"green":"red"}>{status==9?"Təsdiq edilib":"Təsdiq gözləyir"}</Tag>
+      ),
     },
     {
       title: "Telefon təsdiq",
       dataIndex: "mobileStatus",
+      render: status => (
+        <Tag color={status==9?"green":"red"}>{status==9?"Təsdiq edilib":"Təsdiq gözləyir"}</Tag>
+      ),
     },
     {
-      title: "#",
-      dataIndex: "",
-    },
+      title: "Action",
+      dataIndex: "re",
+      render: () => (
+        <Space size="middle">
+          <a>Delete</a>
+        </Space>
+      ),
+    }
   ];
 
   const fetchRecords = (page) => {
     setLoading(true);
     axios
-      .get(`http://localhost:8080/eregusers/?page=${page}&size=10`)
+      .get(`http://localhost:8080/eregusers/?page=${page}&size=8`)
       .then((res) => {
-        console.log(res.data.totalElements);
         setLoading(false);
         setDataSource(res.data.content);
-        setTotalPages(res.data.totalPages);
+        setTotalElements(res.data.totalElements);
+        // setPage(res.data.page);
       })
       .catch((error) => {
         setLoading(false);
@@ -53,14 +66,15 @@ const RegUsers = () => {
   } else {
     return (
       <Table
+        rowKey={record => record.loginName}
         loading={loading}
         columns={columns}
         dataSource={dataSource}
         pagination={{
-          pageSize: 10,
-          total:totalPages,
+          pageSize: 8,
+          total:totalElements,
           onChange: (page) => {
-            fetchRecords(page);
+            fetchRecords(page-1);
           },
         }}
       />
