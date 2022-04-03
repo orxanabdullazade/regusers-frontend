@@ -35,15 +35,14 @@ const RegUsers = () => {
     {
       title: "Telefon təsdiq",
       dataIndex: "mobileStatus",
-      render: (status) => (
-        <Tag color={status == 9 ? "green" : "red"}>
-          {status == 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
+      render: (mobileStatus) => (
+        <Tag color={mobileStatus == 9 ? "green" : "red"}>
+          {mobileStatus == 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
         </Tag>
       ),
     },
     {
-      title: "Action",
-      dataIndex: "re",
+      title: "",
       render: (record) => (
         <FormOutlined
           onClick={() => {
@@ -56,14 +55,14 @@ const RegUsers = () => {
 
   const editRegUser = (record) => {
     setIsEditing(true);
-    console.log({...record});
+    // console.log({...record});
     setEditingRegUser({ ...record });
   };
 
   const fetchRecords = (page) => {
     setLoading(true);
     axios
-      .get(`http://localhost:8080/eregusers/?page=${page}&size=8`)
+      .get(`http://localhost:8080/api/eregusers/?page=${page}&size=8`)
       .then((res) => {
         setLoading(false);
         setDataSource(res.data.content);
@@ -105,7 +104,20 @@ const RegUsers = () => {
           }}
           okText="Yadda saxla"
         >
-          <Input value={editRegUser?.loginName} />
+          <Form labelCol={{ span: 6 }}>
+            <Form.Item label="Email təsdiq" valuePropName="unchecked">
+              <Switch checked={editingRegUser?.status == 9 ? true : false} />
+            </Form.Item>
+            <Form.Item label="Telefon təsdiq" valuePropName="checked">
+              <Switch checked={editingRegUser?.mobileStatus == 9 ? true : false} />
+            </Form.Item>
+            <Form.Item label="Şifrə">
+              <Input />
+            </Form.Item>
+            <Form.Item label="Şifrənin təkrarı">
+              <Input value={editingRegUser?.status} />
+            </Form.Item>
+          </Form>
         </Modal>
       </div>
     );
