@@ -9,7 +9,7 @@ const RegUsers = () => {
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [totalElements, setTotalElements] = useState(1);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isModal, setIsModal] = useState(false);
   const [editingRegUser, setEditingRegUser] = useState(null);
   // const [page, setPage] = useState(1);
   // const [pageSize, setPageSize] = useState(10);
@@ -53,12 +53,6 @@ const RegUsers = () => {
     },
   ];
 
-  const editRegUser = (record) => {
-    setIsEditing(true);
-    // console.log({...record});
-    setEditingRegUser({ ...record });
-  };
-
   const fetchRecords = (page) => {
     setLoading(true);
     axios
@@ -73,6 +67,17 @@ const RegUsers = () => {
         setLoading(false);
         setError(error);
       });
+  };
+
+  const editRegUser = (record) => {
+    setIsModal(true);
+    // console.log({...record});
+    setEditingRegUser({ ...record });
+  };
+
+  const resetEditing = () => {
+    setIsModal(false);
+    setEditingRegUser(null);
   };
 
   if (error) {
@@ -95,27 +100,35 @@ const RegUsers = () => {
         />
         <Modal
           onCancel={() => {
-            setIsEditing(false);
+            resetEditing();
           }}
           cancelText="Imtina"
-          visible={isEditing}
+          visible={isModal}
           onOk={() => {
-            setIsEditing(false);
+            setIsModal(false);
           }}
           okText="Yadda saxla"
         >
           <Form labelCol={{ span: 6 }}>
-            <Form.Item label="Email təsdiq" valuePropName="unchecked">
-              <Switch checked={editingRegUser?.status == 9 ? true : false} />
+            <Form.Item label="Email təsdiq" >
+              <Switch onChange={(e)=>{
+                setEditingRegUser(pre=>{
+                  return {...pre,status:!editingRegUser?.status}
+                })
+              }} checked={editingRegUser?.status == 9 ? true : false} />
             </Form.Item>
-            <Form.Item label="Telefon təsdiq" valuePropName="checked">
-              <Switch checked={editingRegUser?.mobileStatus == 9 ? true : false} />
+            <Form.Item label="Telefon təsdiq">
+              <Switch onChange={(e)=>{
+                setEditingRegUser(pre=>{
+                  return {...pre,mobileStatus:e.target.value}
+                })
+              }}  checked={editingRegUser?.mobileStatus == 9 ? true : false} />
             </Form.Item>
             <Form.Item label="Şifrə">
               <Input />
             </Form.Item>
             <Form.Item label="Şifrənin təkrarı">
-              <Input value={editingRegUser?.status} />
+              <Input />
             </Form.Item>
           </Form>
         </Modal>
