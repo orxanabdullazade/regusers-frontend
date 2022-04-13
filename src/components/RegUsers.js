@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import reactDom from "react-dom";
 import axios from "axios";
 import { Table, Tag, Modal, Form, Switch, Input } from "antd";
 import { FormOutlined } from "@ant-design/icons";
@@ -27,8 +26,8 @@ const RegUsers = () => {
       title: "Email təsdiq",
       dataIndex: "status",
       render: (status) => (
-        <Tag color={status == 9 ? "green" : "red"}>
-          {status == 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
+        <Tag color={status === 9 ? "green" : "red"}>
+          {status === 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
         </Tag>
       ),
     },
@@ -36,8 +35,8 @@ const RegUsers = () => {
       title: "Telefon təsdiq",
       dataIndex: "mobileStatus",
       render: (mobileStatus) => (
-        <Tag color={mobileStatus == 9 ? "green" : "red"}>
-          {mobileStatus == 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
+        <Tag color={mobileStatus === 9 ? "green" : "red"}>
+          {mobileStatus === 9 ? "Təsdiq edilib" : "Təsdiq gözləyir"}
         </Tag>
       ),
     },
@@ -46,6 +45,7 @@ const RegUsers = () => {
       render: (record) => (
         <FormOutlined
           onClick={() => {
+            console.log(record)
             editRegUser(record);
           }}
         />
@@ -61,6 +61,44 @@ const RegUsers = () => {
         setLoading(false);
         setDataSource(res.data.content);
         setTotalElements(res.data.totalElements);
+        // setPage(res.data.page);
+      })
+      .catch((error) => {
+        setLoading(false);
+        setError(error);
+      });
+  };
+
+  // updateUserRecord(userRecord) {
+  //   const userName = userRecord.data.name;
+  //   const userAge = userRecord.data.age;
+  //   fetch("http://rest.learncode.academy/api/nenjotsu/users/" + userRecord.id, {
+  //     method: "PUT",
+  //     headers: {
+  //       "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify({ name: userName, age: userAge })
+  //   }).then(response => {
+  //     this.fetchUser();
+  //     console.log("Update success!", response); //returns 200 ok
+  //   });
+  // }
+
+
+  const updateRecords = (editingRegUser) => {
+    setLoading(true);
+    fetch(`http://localhost:8080/api/eregusers/${editingRegUser.loginName}`,{
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ status: 1, mobileStatus: 1 })
+      })
+      .then((res) => {
+        fetchRecords(0)
+        console.log(res)
+        // setDataSource(res.data.content);
+        // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
       })
       .catch((error) => {
@@ -105,24 +143,40 @@ const RegUsers = () => {
           cancelText="Imtina"
           visible={isModal}
           onOk={() => {
-            setIsModal(false);
+            setDataSource((pre) => {
+              return pre.map((regUser) => {
+                if (regUser.loginName === editingRegUser.loginName) {
+                  updateRecords(editingRegUser)
+                  return editingRegUser;
+                } else {
+                  return regUser;
+                }
+              });
+            });
+            resetEditing();
           }}
           okText="Yadda saxla"
         >
           <Form labelCol={{ span: 6 }}>
-            <Form.Item label="Email təsdiq" >
-              <Switch onChange={(e)=>{
-                setEditingRegUser(pre=>{
-                  return {...pre,status:!editingRegUser?.status}
-                })
-              }} checked={editingRegUser?.status == 9 ? true : false} />
+            <Form.Item label="Email təsdiq">
+              <Switch
+                onChange={(e) => {   
+                  setEditingRegUser((pre) => {
+                    return { ...pre, status: e === true ? 9 : 1 };             
+                  });
+                }}
+                checked={editingRegUser?.status === 9 ? true : false}
+              />
             </Form.Item>
             <Form.Item label="Telefon təsdiq">
-              <Switch onChange={(e)=>{
-                setEditingRegUser(pre=>{
-                  return {...pre,mobileStatus:e.target.value}
-                })
-              }}  checked={editingRegUser?.mobileStatus == 9 ? true : false} />
+              <Switch
+                onChange={(e) => {
+                  setEditingRegUser((pre) => {
+                    return { ...pre, mobileStatus: e === true ? 9 : 1 };
+                  });
+                }}
+                checked={editingRegUser?.mobileStatus === 9 ? true : false}
+              />
             </Form.Item>
             <Form.Item label="Şifrə">
               <Input />
