@@ -2,9 +2,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Tag, Modal, Form, Switch, Input } from "antd";
 import { FormOutlined } from "@ant-design/icons";
+import md5 from "md5";
 
 const RegUsers = () => {
   const [error, setError] = useState(null);
+  const [currentPage,setCurrentPage]=useState(0)
+  const [password, setPassword] = useState(null);
+  const [passwordVerify, setPasswordVerify] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [totalElements, setTotalElements] = useState(1);
@@ -14,7 +18,7 @@ const RegUsers = () => {
   // const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
-    fetchRecords(0);
+    fetchRecords(currentPage);
   }, []);
 
   const columns = [
@@ -45,7 +49,6 @@ const RegUsers = () => {
       render: (record) => (
         <FormOutlined
           onClick={() => {
-            console.log(record)
             editRegUser(record);
           }}
         />
@@ -69,34 +72,15 @@ const RegUsers = () => {
       });
   };
 
-  // updateUserRecord(userRecord) {
-  //   const userName = userRecord.data.name;
-  //   const userAge = userRecord.data.age;
-  //   fetch("http://rest.learncode.academy/api/nenjotsu/users/" + userRecord.id, {
-  //     method: "PUT",
-  //     headers: {
-  //       "Content-Type": "application/json"
-  //     },
-  //     body: JSON.stringify({ name: userName, age: userAge })
-  //   }).then(response => {
-  //     this.fetchUser();
-  //     console.log("Update success!", response); //returns 200 ok
-  //   });
-  // }
-
-
   const updateRecords = (editingRegUser) => {
-    setLoading(true);
-    fetch(`http://localhost:8080/api/eregusers/${editingRegUser.loginName}`,{
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ status: 1, mobileStatus: 1 })
+    axios
+      .put(`http://localhost:8080/api/eregusers/${editingRegUser.loginName}`, {
+        status: editingRegUser.status,
+        mobileStatus: editingRegUser.mobileStatus,
+        hashedPassword: editingRegUser.hashedPassword,
       })
       .then((res) => {
-        fetchRecords(0)
-        console.log(res)
+        fetchRecords(currentPage);
         // setDataSource(res.data.content);
         // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
@@ -109,7 +93,6 @@ const RegUsers = () => {
 
   const editRegUser = (record) => {
     setIsModal(true);
-    // console.log({...record});
     setEditingRegUser({ ...record });
   };
 
@@ -132,6 +115,7 @@ const RegUsers = () => {
             pageSize: 8,
             total: totalElements,
             onChange: (page) => {
+              setCurrentPage(page-1);
               fetchRecords(page - 1);
             },
           }}
@@ -146,7 +130,10 @@ const RegUsers = () => {
             setDataSource((pre) => {
               return pre.map((regUser) => {
                 if (regUser.loginName === editingRegUser.loginName) {
-                  updateRecords(editingRegUser)
+                  if(password==passwordVerify){
+                    editingRegUser.hashedPassword=md5(password);
+                  }
+                  updateRecords(editingRegUser);
                   return editingRegUser;
                 } else {
                   return regUser;
@@ -155,14 +142,13 @@ const RegUsers = () => {
             });
             resetEditing();
           }}
-          okText="Yadda saxla"
-        >
+          okText="Yadda saxla">
           <Form labelCol={{ span: 6 }}>
             <Form.Item label="Email təsdiq">
               <Switch
-                onChange={(e) => {   
+                onChange={(e) => {
                   setEditingRegUser((pre) => {
-                    return { ...pre, status: e === true ? 9 : 1 };             
+                    return { ...pre, status: e === true ? 9 : 1 };
                   });
                 }}
                 checked={editingRegUser?.status === 9 ? true : false}
@@ -179,10 +165,14 @@ const RegUsers = () => {
               />
             </Form.Item>
             <Form.Item label="Şifrə">
-              <Input />
+              <Input onChange={(e) => {
+                  setPassword(e.target.value)
+                }} />
             </Form.Item>
             <Form.Item label="Şifrənin təkrarı">
-              <Input />
+              <Input onChange={(e) => {
+                  setPasswordVerify(e.target.value)
+                }}/>
             </Form.Item>
           </Form>
         </Modal>
