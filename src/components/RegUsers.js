@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Tag, Modal, Form, Switch, Input } from "antd";
+import { Table, Tag, Modal, Form, Switch, Input, message } from "antd";
 import { FormOutlined } from "@ant-design/icons";
 import md5 from "md5";
 
 const RegUsers = () => {
   const [error, setError] = useState(null);
-  const [currentPage,setCurrentPage]=useState(0)
+  const [currentPage, setCurrentPage] = useState(0);
   const [password, setPassword] = useState(null);
   const [passwordVerify, setPasswordVerify] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -81,6 +81,7 @@ const RegUsers = () => {
       })
       .then((res) => {
         fetchRecords(currentPage);
+        message.success("Yenilendi");
         // setDataSource(res.data.content);
         // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
@@ -99,6 +100,8 @@ const RegUsers = () => {
   const resetEditing = () => {
     setIsModal(false);
     setEditingRegUser(null);
+    setPassword(null);
+    setPasswordVerify(null);
   };
 
   if (error) {
@@ -115,7 +118,7 @@ const RegUsers = () => {
             pageSize: 8,
             total: totalElements,
             onChange: (page) => {
-              setCurrentPage(page-1);
+              setCurrentPage(page - 1);
               fetchRecords(page - 1);
             },
           }}
@@ -127,22 +130,14 @@ const RegUsers = () => {
           cancelText="Imtina"
           visible={isModal}
           onOk={() => {
-            setDataSource((pre) => {
-              return pre.map((regUser) => {
-                if (regUser.loginName === editingRegUser.loginName) {
-                  if(password==passwordVerify){
-                    editingRegUser.hashedPassword=md5(password);
-                  }
-                  updateRecords(editingRegUser);
-                  return editingRegUser;
-                } else {
-                  return regUser;
-                }
-              });
-            });
+            if (password == passwordVerify) {
+              editingRegUser.hashedPassword = md5(password);
+            }
+            updateRecords(editingRegUser);
             resetEditing();
           }}
-          okText="Yadda saxla">
+          okText="Yadda saxla"
+        >
           <Form labelCol={{ span: 6 }}>
             <Form.Item label="Email təsdiq">
               <Switch
@@ -164,15 +159,44 @@ const RegUsers = () => {
                 checked={editingRegUser?.mobileStatus === 9 ? true : false}
               />
             </Form.Item>
-            <Form.Item label="Şifrə">
-              <Input onChange={(e) => {
-                  setPassword(e.target.value)
-                }} />
+            <Form.Item
+              name="password"
+              hasFeedback
+              label="Şifrə"
+            >
+              <Input.Password
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+              />
             </Form.Item>
-            <Form.Item label="Şifrənin təkrarı">
-              <Input onChange={(e) => {
-                  setPasswordVerify(e.target.value)
-                }}/>
+             <Form.Item
+              name="passwordVerify"
+              dependencies={["password"]}
+              label="Şifrənin təkrarı"
+              hasFeedback
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error(
+                        "The two passwords that you entered do not match!"
+                      )
+                    );
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                value={passwordVerify}
+                onChange={(e) => {
+                  setPasswordVerify(e.target.value);
+                }}
+              />
             </Form.Item>
           </Form>
         </Modal>
