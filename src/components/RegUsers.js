@@ -7,18 +7,21 @@ import md5 from "md5";
 const RegUsers = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [password, setPassword] = useState(null);
-  const [passwordVerify, setPasswordVerify] = useState(null);
+  const [password, setPassword] = useState('');
+  const [passwordVerify, setPasswordVerify] = useState('');
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [totalElements, setTotalElements] = useState(1);
   const [isModal, setIsModal] = useState(false);
   const [editingRegUser, setEditingRegUser] = useState(null);
+  const [form] = Form.useForm();
+
   // const [page, setPage] = useState(1);
   // const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchRecords(currentPage);
+       
   }, []);
 
   const columns = [
@@ -82,6 +85,8 @@ const RegUsers = () => {
       .then((res) => {
         fetchRecords(currentPage);
         message.success("Yenilendi");
+        resetEditing();
+        console.log({password})
         // setDataSource(res.data.content);
         // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
@@ -100,8 +105,7 @@ const RegUsers = () => {
   const resetEditing = () => {
     setIsModal(false);
     setEditingRegUser(null);
-    setPassword(null);
-    setPasswordVerify(null);
+    form.setFieldsValue({ password: '' });
   };
 
   if (error) {
@@ -130,11 +134,10 @@ const RegUsers = () => {
           cancelText="Imtina"
           visible={isModal}
           onOk={() => {
-            if (password == passwordVerify) {
+            if ( password == passwordVerify) {
               editingRegUser.hashedPassword = md5(password);
             }
             updateRecords(editingRegUser);
-            resetEditing();
           }}
           okText="Yadda saxla"
         >
