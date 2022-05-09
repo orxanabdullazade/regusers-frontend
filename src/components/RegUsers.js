@@ -1,19 +1,30 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Tag, Modal, Form, Switch, Input, message } from "antd";
+import {
+  Table,
+  Tag,
+  Modal,
+  Form,
+  Switch,
+  Input,
+  message,
+  Space,
+  Button,
+} from "antd";
 import { FormOutlined } from "@ant-design/icons";
 import md5 from "md5";
 
 const RegUsers = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [password, setPassword] = useState('');
-  const [passwordVerify, setPasswordVerify] = useState('');
+  const [password, setPassword] = useState("");
+  const [passwordVerify, setPasswordVerify] = useState("");
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [totalElements, setTotalElements] = useState(1);
   const [isModal, setIsModal] = useState(false);
   const [editingRegUser, setEditingRegUser] = useState(null);
+  const [search, setSearch] = useState(null);
   const [form] = Form.useForm();
 
   // const [page, setPage] = useState(1);
@@ -21,7 +32,6 @@ const RegUsers = () => {
 
   useEffect(() => {
     fetchRecords(currentPage);
-       
   }, []);
 
   const columns = [
@@ -75,6 +85,28 @@ const RegUsers = () => {
       });
   };
 
+  const searchRecords = (loginName) => {
+    axios
+      .post(`http://localhost:8080/api/eregusers`, { loginName: loginName })
+      .then((res) => {
+        console.log(res);
+        if (res.status == 200) {
+          setDataSource([res.data]);
+          setTotalElements([res.data].length);
+        }
+        if (res.status == 400) {
+          setDataSource([res.data]);
+          setTotalElements([res.data].length);
+        }
+        // setTotalElements(res.data.totalElements);
+        // setPage(res.data.page);
+      })
+      .catch((error) => {
+        setLoading(false);
+        setError(error);
+      });
+  };
+
   const updateRecords = (editingRegUser) => {
     axios
       .put(`http://localhost:8080/api/eregusers/${editingRegUser.loginName}`, {
@@ -112,6 +144,19 @@ const RegUsers = () => {
   } else {
     return (
       <div>
+        <div style={{ paddingBottom: 8, float: "right" }}>
+          <Space>
+            <Input
+              onChange={(e) =>
+                setSearch(e.target.value ? e.target.value : null)
+              }
+            />
+            <Button onClick={() => searchRecords(search)} type="primary">
+              Axtar
+            </Button>
+            <Button onClick={() => fetchRecords()}>Temizle</Button>
+          </Space>
+        </div>
         <Table
           rowKey={(record) => record.loginName}
           loading={loading}
@@ -151,11 +196,7 @@ const RegUsers = () => {
           }}
           okText="Yadda saxla"
         >
-          <Form 
-           form={form}
-           labelCol={{ span: 6 }}
-           autoComplete="off"
-           >
+          <Form form={form} labelCol={{ span: 6 }} autoComplete="off">
             <Form.Item label="Email təsdiq">
               <Switch
                 onChange={(e) => {
@@ -180,10 +221,7 @@ const RegUsers = () => {
               name="password"
               hasFeedback
               label="Şifrə"
-              rules={[
-                {whitespace:true},
-                {min:3}
-              ]}
+              rules={[{ whitespace: true }, { min: 3 }]}
             >
               <Input.Password
                 value={password}
@@ -192,14 +230,14 @@ const RegUsers = () => {
                 }}
               />
             </Form.Item>
-             <Form.Item
+            <Form.Item
               name="passwordVerify"
               dependencies={["password"]}
               label="Şifrənin təkrarı"
               hasFeedback
               rules={[
-                {whitespace:true},
-                {min:3},
+                { whitespace: true },
+                { min: 3 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue("password") === value) {
