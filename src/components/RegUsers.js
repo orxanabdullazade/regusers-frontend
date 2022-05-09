@@ -86,7 +86,6 @@ const RegUsers = () => {
         fetchRecords(currentPage);
         message.success("Yenilendi");
         resetEditing();
-        console.log({password})
         // setDataSource(res.data.content);
         // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
@@ -105,7 +104,7 @@ const RegUsers = () => {
   const resetEditing = () => {
     setIsModal(false);
     setEditingRegUser(null);
-    form.setFieldsValue({ password: '' });
+    form.resetFields();
   };
 
   if (error) {
@@ -134,14 +133,29 @@ const RegUsers = () => {
           cancelText="Imtina"
           visible={isModal}
           onOk={() => {
-            if ( password == passwordVerify) {
-              editingRegUser.hashedPassword = md5(password);
-            }
-            updateRecords(editingRegUser);
+            form
+              .validateFields()
+              .then(() => {
+                if (
+                  password != null &&
+                  passwordVerify != null &&
+                  password == passwordVerify
+                ) {
+                  editingRegUser.hashedPassword = md5(password);
+                }
+                updateRecords(editingRegUser);
+              })
+              .catch((info) => {
+                console.log("Validate Failed:", info);
+              });
           }}
           okText="Yadda saxla"
         >
-          <Form labelCol={{ span: 6 }}>
+          <Form 
+           form={form}
+           labelCol={{ span: 6 }}
+           autoComplete="off"
+           >
             <Form.Item label="Email təsdiq">
               <Switch
                 onChange={(e) => {
@@ -166,6 +180,10 @@ const RegUsers = () => {
               name="password"
               hasFeedback
               label="Şifrə"
+              rules={[
+                {whitespace:true},
+                {min:3}
+              ]}
             >
               <Input.Password
                 value={password}
@@ -180,6 +198,8 @@ const RegUsers = () => {
               label="Şifrənin təkrarı"
               hasFeedback
               rules={[
+                {whitespace:true},
+                {min:3},
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue("password") === value) {
