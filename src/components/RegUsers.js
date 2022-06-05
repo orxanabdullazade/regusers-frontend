@@ -94,14 +94,13 @@ const RegUsers = () => {
           setDataSource([res.data]);
           setTotalElements([res.data].length);
         }
-        if (res.status == 400) {
-          setDataSource([res.data]);
-          setTotalElements([res.data].length);
-        }
+     
         // setTotalElements(res.data.totalElements);
         // setPage(res.data.page);
       })
       .catch((error) => {
+        console.log(error.response.status);
+        setDataSource([]);
         setLoading(false);
         setError(error);
       });
